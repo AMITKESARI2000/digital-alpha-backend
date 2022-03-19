@@ -1,5 +1,51 @@
 import React, { Component } from 'react'
 import {Line, Bar, Pie } from 'react-chartjs-2';
+import axios from 'axios'
+
+async function retrieve() {
+  const ciks = ["0000796343", "0001459417"];
+
+  let master_dict = {};
+
+  let search_List = ["EarningsPerShareBasic", "SellingAndMarketingExpense"];
+  let Base_URL = "https://data.sec.gov/api/xbrl/companyfacts/CIK";
+  let data_dict = {};
+  let data_json = {};
+  for (let cik in ciks) {
+    let URL = `${Base_URL}${ciks[cik]}.json`;
+    console.log("cik is " + ciks[cik]);
+    await axios
+      .get(URL)
+      .then((res) => {data_json=res.data.facts['us-gaap']})
+      .catch((err) => console.log(err));
+   ;
+    let values = data_json;
+    console.log(data_json)
+
+    for (let item in search_List) {
+      item = search_List[item];
+      data_dict[item] = {};
+      data_dict[item]['description'] = values[item]['description'];
+      let cur_dict = values[item]['units'];
+      let cur_key = Object.keys(cur_dict)[0];
+      let cur_list = cur_dict[cur_key];
+      cur_list.reverse();
+      let k = 0;
+      for (let i in cur_list) {
+        if (k > 2) break;
+        if (i['form'] === "10-K") {
+          data_dict[item][k] = i['val'];
+          k += 1;
+        }
+      }
+      
+    }
+
+    master_dict[ciks[cik]] = data_dict;
+  }
+
+   console.log(master_dict);
+}
 
 export class Dashboard extends Component { 
   websiteAudienceChartData = {
@@ -407,10 +453,26 @@ export class Dashboard extends Component {
         <div className="proBanner">
           <div>
             <span className="d-flex align-items-center purchase-popup">
-              <p className="m-0">Get tons of UI components, Plugins, multiple layouts, 20+ sample pages, and more!</p>
-              <a href="https://www.bootstrapdash.com/product/azia-react/?utm_source=organic&utm_medium=banner&utm_campaign=free-preview" rel="noopener noreferrer" target="_blank" className="btn btn-sm btn-primary ml-auto">Check Pro Version</a>
-              <i className="typcn typcn-delete-outline bannerClose" onClick={this.toggleProBanner}></i>
+              <p className="m-0">
+                Get tons of UI components, Plugins, multiple layouts, 20+ sample
+                pages, and more!
+              </p>
+              <a
+                href="https://www.bootstrapdash.com/product/azia-react/?utm_source=organic&utm_medium=banner&utm_campaign=free-preview"
+                rel="noopener noreferrer"
+                target="_blank"
+                className="btn btn-sm btn-primary ml-auto"
+              >
+                Check Pro Version
+              </a>
+              <i
+                className="typcn typcn-delete-outline bannerClose"
+                onClick={this.toggleProBanner}
+              ></i>
             </span>
+            <button onClick={retrieve} className="btn btn-primary">
+              Get Sum
+            </button>
           </div>
         </div>
         <div className="container p-md-0">
@@ -418,44 +480,71 @@ export class Dashboard extends Component {
             <div className="az-dashboard-one-title">
               <div>
                 <h2 className="az-dashboard-title">Hi, welcome back!</h2>
-                <p className="az-dashboard-text">Your web analytics dashboard template.</p>
+                <p className="az-dashboard-text">
+                  Your web analytics dashboard template.
+                </p>
               </div>
               <div className="az-content-header-right">
                 <div className="media">
                   <div className="media-body">
                     <label>Start Date</label>
                     <h6>Oct 10, 2018</h6>
-                  </div>{/* media-body */}
-                </div>{/* media */}
+                  </div>
+                  {/* media-body */}
+                </div>
+                {/* media */}
                 <div className="media">
                   <div className="media-body">
                     <label>End Date</label>
                     <h6>Oct 23, 2018</h6>
-                  </div>{/* media-body */}
-                </div>{/* media */}
+                  </div>
+                  {/* media-body */}
+                </div>
+                {/* media */}
                 <div className="media">
                   <div className="media-body">
                     <label>Event Category</label>
                     <h6>All Categories</h6>
-                  </div>{/* media-body */}
-                </div>{/* media */}
-                <a href="#/" className="btn btn-purple">Export</a>
+                  </div>
+                  {/* media-body */}
+                </div>
+                {/* media */}
+                <a href="#/" className="btn btn-purple">
+                  Export
+                </a>
               </div>
-            </div>{/* az-dashboard-one-title */}
+            </div>
+            {/* az-dashboard-one-title */}
 
             <div className="az-dashboard-nav">
               <nav className="nav">
-                <a className="nav-link active" data-toggle="tab" href="#/">Overview</a>
-                <a className="nav-link" data-toggle="tab" href="#/">Audiences</a>
-                <a className="nav-link" data-toggle="tab" href="#/">Demographics</a>
-                <a className="nav-link" data-toggle="tab" href="#/">More</a>
+                <a className="nav-link active" data-toggle="tab" href="#/">
+                  Overview
+                </a>
+                <a className="nav-link" data-toggle="tab" href="#/">
+                  Audiences
+                </a>
+                <a className="nav-link" data-toggle="tab" href="#/">
+                  Demographics
+                </a>
+                <a className="nav-link" data-toggle="tab" href="#/">
+                  More
+                </a>
               </nav>
 
               <nav className="nav">
-                <a className="nav-link" href="#/"><i className="far fa-save"></i> Save Report</a>
-                <a className="nav-link" href="#/"><i className="far fa-file-pdf"></i> Export to PDF</a>
-                <a className="nav-link" href="#/"><i className="far fa-envelope"></i>Send to Email</a>
-                <a className="nav-link" href="#/"><i className="fas fa-ellipsis-h"></i></a>
+                <a className="nav-link" href="#/">
+                  <i className="far fa-save"></i> Save Report
+                </a>
+                <a className="nav-link" href="#/">
+                  <i className="far fa-file-pdf"></i> Export to PDF
+                </a>
+                <a className="nav-link" href="#/">
+                  <i className="far fa-envelope"></i>Send to Email
+                </a>
+                <a className="nav-link" href="#/">
+                  <i className="fas fa-ellipsis-h"></i>
+                </a>
               </nav>
             </div>
 
@@ -465,14 +554,18 @@ export class Dashboard extends Component {
                   <div className="card-header">
                     <div>
                       <h6 className="card-title">Website Audience Metrics</h6>
-                      <p className="card-text">Audience to which the users belonged while on the current date range.</p>
+                      <p className="card-text">
+                        Audience to which the users belonged while on the
+                        current date range.
+                      </p>
                     </div>
                     <div className="btn-group">
                       <button className="btn active">Day</button>
                       <button className="btn">Week</button>
                       <button className="btn">Month</button>
                     </div>
-                  </div>{/* card-header */}
+                  </div>
+                  {/* card-header */}
                   <div className="card-body">
                     <div className="card-body-top">
                       <div>
@@ -491,66 +584,117 @@ export class Dashboard extends Component {
                         <label className="mg-b-0">Sessions</label>
                         <h2>16,869</h2>
                       </div>
-                    </div>{/* card-body-top */}
+                    </div>
+                    {/* card-body-top */}
                     <div className="page-view-chart-wrapper">
-                      <Line data={this.websiteAudienceChartData} options={this.websiteAudienceChartOptions} />
-                    </div>{/* flot-chart-wrapper */}
-                  </div>{/* card-body */}
-                </div>{/* card */}
-              </div>{/* col */}
+                      <Line
+                        data={this.websiteAudienceChartData}
+                        options={this.websiteAudienceChartOptions}
+                      />
+                    </div>
+                    {/* flot-chart-wrapper */}
+                  </div>
+                  {/* card-body */}
+                </div>
+                {/* card */}
+              </div>
+              {/* col */}
               <div className="col-lg-5 mg-t-20 mg-lg-t-0">
                 <div className="row row-sm">
                   <div className="col-sm-6">
                     <div className="card card-dashboard-two">
                       <div className="card-header">
-                        <h6>33.50% <i className="icon ion-md-trending-up tx-success"></i> <small>18.02%</small></h6>
+                        <h6>
+                          33.50%{" "}
+                          <i className="icon ion-md-trending-up tx-success"></i>{" "}
+                          <small>18.02%</small>
+                        </h6>
                         <p>Bounce Rate</p>
-                      </div>{/* card-header */}
+                      </div>
+                      {/* card-header */}
                       <div className="card-body">
                         <div className="chart-wrapper">
-                          <Line data={this.bounceRateChartData} options={this.bounceRateChartOptions} />
-                        </div>{/* chart-wrapper */}
-                      </div>{/* card-body */}
-                    </div>{/* card */}
-                  </div>{/* col */}
+                          <Line
+                            data={this.bounceRateChartData}
+                            options={this.bounceRateChartOptions}
+                          />
+                        </div>
+                        {/* chart-wrapper */}
+                      </div>
+                      {/* card-body */}
+                    </div>
+                    {/* card */}
+                  </div>
+                  {/* col */}
                   <div className="col-sm-6 mg-t-20 mg-sm-t-0">
                     <div className="card card-dashboard-two">
                       <div className="card-header">
-                        <h6>86k <i className="icon ion-md-trending-down tx-danger"></i> <small>0.86%</small></h6>
+                        <h6>
+                          86k{" "}
+                          <i className="icon ion-md-trending-down tx-danger"></i>{" "}
+                          <small>0.86%</small>
+                        </h6>
                         <p>Total Users</p>
-                      </div>{/* card-header */}
+                      </div>
+                      {/* card-header */}
                       <div className="card-body">
                         <div className="chart-wrapper">
-                          <Bar data={this.totalUsersChartData} options={this.totalUsersChartOptions} />
-                        </div>{/* chart-wrapper */}
-                      </div>{/* card-body */}
-                    </div>{/* card */}
-                  </div>{/* col */}
+                          <Bar
+                            data={this.totalUsersChartData}
+                            options={this.totalUsersChartOptions}
+                          />
+                        </div>
+                        {/* chart-wrapper */}
+                      </div>
+                      {/* card-body */}
+                    </div>
+                    {/* card */}
+                  </div>
+                  {/* col */}
                   <div className="col-sm-12 mg-t-20">
                     <div className="card card-dashboard-three">
                       <div className="card-header">
                         <p>All Sessions</p>
-                        <h6>16,869 <small className="tx-success"><i className="icon ion-md-arrow-up"></i> 2.87%</small></h6>
-                        <small>The total number of sessions within the date range. It is the period time a user is actively engaged with your website, page or app, etc.</small>
-                      </div>{/* card-header */}
+                        <h6>
+                          16,869{" "}
+                          <small className="tx-success">
+                            <i className="icon ion-md-arrow-up"></i> 2.87%
+                          </small>
+                        </h6>
+                        <small>
+                          The total number of sessions within the date range. It
+                          is the period time a user is actively engaged with
+                          your website, page or app, etc.
+                        </small>
+                      </div>
+                      {/* card-header */}
                       <div className="card-body">
                         <div className="chart d-flex align-items-end">
-                          <Bar data={this.allSessionsChartData} options={this.allSessionsChartOptions} />
+                          <Bar
+                            data={this.allSessionsChartData}
+                            options={this.allSessionsChartOptions}
+                          />
                         </div>
                       </div>
                     </div>
                   </div>
-                </div>{/* row */}
-              </div>{/*col */}
-            </div>{/* row */}
+                </div>
+                {/* row */}
+              </div>
+              {/*col */}
+            </div>
+            {/* row */}
 
             <div className="row row-sm mg-b-20">
               <div className="col-lg-4">
                 <div className="card card-dashboard-pageviews">
                   <div className="card-header">
                     <h6 className="card-title">Page Views by Page Title</h6>
-                    <p className="card-text">This report is based on 100% of sessions.</p>
-                  </div>{/* card-header */}
+                    <p className="card-text">
+                      This report is based on 100% of sessions.
+                    </p>
+                  </div>
+                  {/* card-header */}
                   <div className="card-body">
                     <div className="az-list-item">
                       <div>
@@ -561,7 +705,8 @@ export class Dashboard extends Component {
                         <h6 className="tx-primary">7,755</h6>
                         <span>31.74% (-100.00%)</span>
                       </div>
-                    </div>{/* list-group-item */}
+                    </div>
+                    {/* list-group-item */}
                     <div className="az-list-item">
                       <div>
                         <h6>Form Elements</h6>
@@ -571,7 +716,8 @@ export class Dashboard extends Component {
                         <h6 className="tx-primary">5,215</h6>
                         <span>28.53% (-100.00%)</span>
                       </div>
-                    </div>{/* list-group-item */}
+                    </div>
+                    {/* list-group-item */}
                     <div className="az-list-item">
                       <div>
                         <h6>Utilities</h6>
@@ -581,7 +727,8 @@ export class Dashboard extends Component {
                         <h6 className="tx-primary">4,848</h6>
                         <span>25.35% (-100.00%)</span>
                       </div>
-                    </div>{/* list-group-item */}
+                    </div>
+                    {/* list-group-item */}
                     <div className="az-list-item">
                       <div>
                         <h6>Form Validation</h6>
@@ -591,7 +738,8 @@ export class Dashboard extends Component {
                         <h6 className="tx-primary">3,275</h6>
                         <span>23.17% (-100.00%)</span>
                       </div>
-                    </div>{/* list-group-item */}
+                    </div>
+                    {/* list-group-item */}
                     <div className="az-list-item">
                       <div>
                         <h6>Modals</h6>
@@ -601,73 +749,131 @@ export class Dashboard extends Component {
                         <h6 className="tx-primary">3,003</h6>
                         <span>22.21% (-100.00%)</span>
                       </div>
-                    </div>{/* list-group-item */}
-                  </div>{/* card-body */}
-                </div>{/* card */}
-
-              </div>{/* col */}
+                    </div>
+                    {/* list-group-item */}
+                  </div>
+                  {/* card-body */}
+                </div>
+                {/* card */}
+              </div>
+              {/* col */}
               <div className="col-lg-8 mg-t-20 mg-lg-t-0">
                 <div className="card card-dashboard-four">
                   <div className="card-header">
                     <h6 className="card-title">Sessions by Channel</h6>
-                  </div>{/* card-header */}
+                  </div>
+                  {/* card-header */}
                   <div className="card-body row">
                     <div className="col-md-6 d-flex align-items-center">
                       <div className="chart">
-                        <Pie data={this.sessionsChannelChartData} options={this.sessionsChannelChartOptions} />
+                        <Pie
+                          data={this.sessionsChannelChartData}
+                          options={this.sessionsChannelChartOptions}
+                        />
                       </div>
-                    </div>{/* col */}
+                    </div>
+                    {/* col */}
                     <div className="col-md-6 col-lg-5 mg-lg-l-auto mg-t-20 mg-md-t-0">
                       <div className="az-traffic-detail-item">
                         <div>
                           <span>Organic Search</span>
-                          <span>1,320 <span>(25%)</span></span>
+                          <span>
+                            1,320 <span>(25%)</span>
+                          </span>
                         </div>
                         <div className="progress">
-                          <div className="progress-bar bg-purple wd-25p" role="progressbar" aria-valuenow="25" aria-valuemin="0" aria-valuemax="100"></div>
-                        </div>{/* progress */}
+                          <div
+                            className="progress-bar bg-purple wd-25p"
+                            role="progressbar"
+                            aria-valuenow="25"
+                            aria-valuemin="0"
+                            aria-valuemax="100"
+                          ></div>
+                        </div>
+                        {/* progress */}
                       </div>
                       <div className="az-traffic-detail-item">
                         <div>
                           <span>Email</span>
-                          <span>987 <span>(20%)</span></span>
+                          <span>
+                            987 <span>(20%)</span>
+                          </span>
                         </div>
                         <div className="progress">
-                          <div className="progress-bar bg-primary wd-20p" role="progressbar" aria-valuenow="20" aria-valuemin="0" aria-valuemax="100"></div>
-                        </div>{/* progress */}
+                          <div
+                            className="progress-bar bg-primary wd-20p"
+                            role="progressbar"
+                            aria-valuenow="20"
+                            aria-valuemin="0"
+                            aria-valuemax="100"
+                          ></div>
+                        </div>
+                        {/* progress */}
                       </div>
                       <div className="az-traffic-detail-item">
                         <div>
                           <span>Referral</span>
-                          <span>2,010 <span>(30%)</span></span>
+                          <span>
+                            2,010 <span>(30%)</span>
+                          </span>
                         </div>
                         <div className="progress">
-                          <div className="progress-bar bg-info wd-30p" role="progressbar" aria-valuenow="30" aria-valuemin="0" aria-valuemax="100"></div>
-                        </div>{/* progress */}
+                          <div
+                            className="progress-bar bg-info wd-30p"
+                            role="progressbar"
+                            aria-valuenow="30"
+                            aria-valuemin="0"
+                            aria-valuemax="100"
+                          ></div>
+                        </div>
+                        {/* progress */}
                       </div>
                       <div className="az-traffic-detail-item">
                         <div>
                           <span>Social</span>
-                          <span>654 <span>(15%)</span></span>
+                          <span>
+                            654 <span>(15%)</span>
+                          </span>
                         </div>
                         <div className="progress">
-                          <div className="progress-bar bg-teal wd-15p" role="progressbar" aria-valuenow="15" aria-valuemin="0" aria-valuemax="100"></div>
-                        </div>{/* progress */}
+                          <div
+                            className="progress-bar bg-teal wd-15p"
+                            role="progressbar"
+                            aria-valuenow="15"
+                            aria-valuemin="0"
+                            aria-valuemax="100"
+                          ></div>
+                        </div>
+                        {/* progress */}
                       </div>
                       <div className="az-traffic-detail-item">
                         <div>
                           <span>Other</span>
-                          <span>400 <span>(10%)</span></span>
+                          <span>
+                            400 <span>(10%)</span>
+                          </span>
                         </div>
                         <div className="progress">
-                          <div className="progress-bar bg-gray-500 wd-10p" role="progressbar" aria-valuenow="10" aria-valuemin="0" aria-valuemax="100"></div>
-                        </div>{/* progress */}
+                          <div
+                            className="progress-bar bg-gray-500 wd-10p"
+                            role="progressbar"
+                            aria-valuenow="10"
+                            aria-valuemin="0"
+                            aria-valuemax="100"
+                          ></div>
+                        </div>
+                        {/* progress */}
                       </div>
-                    </div>{/* col */}
-                  </div>{/* card-body */}
-                </div>{/* card-dashboard-four */}
-              </div>{/* col */}
-            </div>{/* row */}
+                    </div>
+                    {/* col */}
+                  </div>
+                  {/* card-body */}
+                </div>
+                {/* card-dashboard-four */}
+              </div>
+              {/* col */}
+            </div>
+            {/* row */}
 
             <div className="row row-sm mg-b-20 mg-lg-b-0">
               <div className="col-lg-5 col-xl-4">
@@ -676,68 +882,105 @@ export class Dashboard extends Component {
                     <div className="card card-dashboard-five">
                       <div className="card-header">
                         <h6 className="card-title">Acquisition</h6>
-                        <span className="card-text">Tells you where your visitors originated from, such as search engines, social networks or website referrals.</span>
-                      </div>{/* card-header */}
+                        <span className="card-text">
+                          Tells you where your visitors originated from, such as
+                          search engines, social networks or website referrals.
+                        </span>
+                      </div>
+                      {/* card-header */}
                       <div className="card-body row row-sm">
                         <div className="col-6 d-sm-flex align-items-center">
                           <div className="card-chart bg-primary acquisition-chart">
-                            <Bar className="w-50" data={this.acquisitionChart1Data} options={this.acquisitionChart1Options} />
+                            <Bar
+                              className="w-50"
+                              data={this.acquisitionChart1Data}
+                              options={this.acquisitionChart1Options}
+                            />
                           </div>
                           <div>
                             <label>Bounce Rate</label>
                             <h4>33.50%</h4>
                           </div>
-                        </div>{/* col */}
+                        </div>
+                        {/* col */}
                         <div className="col-6 d-sm-flex align-items-center">
                           <div className="card-chart bg-purple acquisition-chart">
-                            <Bar data={this.acquisitionChart2Data} options={this.acquisitionChart2Options} />
+                            <Bar
+                              data={this.acquisitionChart2Data}
+                              options={this.acquisitionChart2Options}
+                            />
                           </div>
                           <div>
                             <label>Sessions</label>
                             <h4>9,065</h4>
                           </div>
-                        </div>{/* col */}
-                      </div>{/* card-body */}
-                    </div>{/* card-dashboard-five */}
-                  </div>{/* col */}
+                        </div>
+                        {/* col */}
+                      </div>
+                      {/* card-body */}
+                    </div>
+                    {/* card-dashboard-five */}
+                  </div>
+                  {/* col */}
                   <div className="col-md-6 col-lg-12">
                     <div className="card card-dashboard-five">
                       <div className="card-header">
                         <h6 className="card-title">Sessions</h6>
-                        <span className="card-text"> A session is the period time a user is actively engaged with your website, app, etc.</span>
-                      </div>{/* card-header */}
+                        <span className="card-text">
+                          {" "}
+                          A session is the period time a user is actively
+                          engaged with your website, app, etc.
+                        </span>
+                      </div>
+                      {/* card-header */}
                       <div className="card-body row row-sm">
                         <div className="col-6">
                           <div className="d-sm-flex align-items-center">
                             <div className="mg-b-10 mg-sm-b-0 mg-sm-r-10 wd-50 ht-40">
-                              <Pie data={this.sessionsChart1Data} options={this.sessionsChart1Options} />
+                              <Pie
+                                data={this.sessionsChart1Data}
+                                options={this.sessionsChart1Options}
+                              />
                             </div>
                             <div>
                               <label>% New Sessions</label>
                               <h4>26.80%</h4>
                             </div>
                           </div>
-                        </div>{/* col */}
+                        </div>
+                        {/* col */}
                         <div className="col-6">
                           <div className="d-sm-flex align-items-center">
                             <div className="mg-b-10 mg-sm-b-0 mg-sm-r-10 wd-50 ht-40">
-                              <Pie data={this.sessionsChart2Data} options={this.sessionsChart2Options} />
+                              <Pie
+                                data={this.sessionsChart2Data}
+                                options={this.sessionsChart2Options}
+                              />
                             </div>
                             <div>
                               <label>Pages/Session</label>
                               <h4>1,005</h4>
                             </div>
                           </div>
-                        </div>{/* col */}
-                      </div>{/* card-body */}
-                    </div>{/* card-dashboard-five */}
-                  </div>{/* col */}
-                </div>{/* row */}
-              </div>{/* col-lg-3 */}
+                        </div>
+                        {/* col */}
+                      </div>
+                      {/* card-body */}
+                    </div>
+                    {/* card-dashboard-five */}
+                  </div>
+                  {/* col */}
+                </div>
+                {/* row */}
+              </div>
+              {/* col-lg-3 */}
               <div className="col-lg-7 col-xl-8 mg-t-20 mg-lg-t-0">
                 <div className="card card-table-one">
                   <h6 className="card-title">What pages do your users visit</h6>
-                  <p className="az-content-text mg-b-20">Part of this date range occurs before the new users metric had been calculated, so the old users metric is displayed.</p>
+                  <p className="az-content-text mg-b-20">
+                    Part of this date range occurs before the new users metric
+                    had been calculated, so the old users metric is displayed.
+                  </p>
                   <div className="table-responsive">
                     <table className="table">
                       <thead>
@@ -751,58 +994,98 @@ export class Dashboard extends Component {
                       </thead>
                       <tbody>
                         <tr>
-                          <td><i className="flag-icon flag-icon-us flag-icon-squared"></i></td>
-                          <td><strong>United States</strong></td>
-                          <td><strong>134</strong> (1.51%)</td>
+                          <td>
+                            <i className="flag-icon flag-icon-us flag-icon-squared"></i>
+                          </td>
+                          <td>
+                            <strong>United States</strong>
+                          </td>
+                          <td>
+                            <strong>134</strong> (1.51%)
+                          </td>
                           <td>33.58%</td>
                           <td>15.47%</td>
                         </tr>
                         <tr>
-                          <td><i className="flag-icon flag-icon-gb flag-icon-squared"></i></td>
-                          <td><strong>United Kingdom</strong></td>
-                          <td><strong>290</strong> (3.30%)</td>
+                          <td>
+                            <i className="flag-icon flag-icon-gb flag-icon-squared"></i>
+                          </td>
+                          <td>
+                            <strong>United Kingdom</strong>
+                          </td>
+                          <td>
+                            <strong>290</strong> (3.30%)
+                          </td>
                           <td>9.22%</td>
                           <td>7.99%</td>
                         </tr>
                         <tr>
-                          <td><i className="flag-icon flag-icon-in flag-icon-squared"></i></td>
-                          <td><strong>India</strong></td>
-                          <td><strong>250</strong> (3.00%)</td>
+                          <td>
+                            <i className="flag-icon flag-icon-in flag-icon-squared"></i>
+                          </td>
+                          <td>
+                            <strong>India</strong>
+                          </td>
+                          <td>
+                            <strong>250</strong> (3.00%)
+                          </td>
                           <td>20.75%</td>
                           <td>2.40%</td>
                         </tr>
                         <tr>
-                          <td><i className="flag-icon flag-icon-ca flag-icon-squared"></i></td>
-                          <td><strong>Canada</strong></td>
-                          <td><strong>216</strong> (2.79%)</td>
+                          <td>
+                            <i className="flag-icon flag-icon-ca flag-icon-squared"></i>
+                          </td>
+                          <td>
+                            <strong>Canada</strong>
+                          </td>
+                          <td>
+                            <strong>216</strong> (2.79%)
+                          </td>
                           <td>32.07%</td>
                           <td>15.09%</td>
                         </tr>
                         <tr>
-                          <td><i className="flag-icon flag-icon-fr flag-icon-squared"></i></td>
-                          <td><strong>France</strong></td>
-                          <td><strong>216</strong> (2.79%)</td>
+                          <td>
+                            <i className="flag-icon flag-icon-fr flag-icon-squared"></i>
+                          </td>
+                          <td>
+                            <strong>France</strong>
+                          </td>
+                          <td>
+                            <strong>216</strong> (2.79%)
+                          </td>
                           <td>32.07%</td>
                           <td>15.09%</td>
                         </tr>
                         <tr>
-                          <td><i className="flag-icon flag-icon-ph flag-icon-squared"></i></td>
-                          <td><strong>Philippines</strong></td>
-                          <td><strong>197</strong> (2.12%)</td>
+                          <td>
+                            <i className="flag-icon flag-icon-ph flag-icon-squared"></i>
+                          </td>
+                          <td>
+                            <strong>Philippines</strong>
+                          </td>
+                          <td>
+                            <strong>197</strong> (2.12%)
+                          </td>
                           <td>32.07%</td>
                           <td>15.09%</td>
                         </tr>
                       </tbody>
                     </table>
-                  </div>{/* table-responsive */}
-                </div>{/* card */}
-              </div>{/* col-lg */}
-
-            </div>{/* row */}
-          </div>{/* az-content-body */}
+                  </div>
+                  {/* table-responsive */}
+                </div>
+                {/* card */}
+              </div>
+              {/* col-lg */}
+            </div>
+            {/* row */}
+          </div>
+          {/* az-content-body */}
         </div>
       </div>
-    )
+    );
   }
 }
 
